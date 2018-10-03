@@ -1,0 +1,19 @@
+image: ubuntu:xenial
+before_script:
+- apt-get update -qyy
+- apt-get install -qyy curl bc make git build-essential
+- apt-get --yes install libglib2.0-dev curl flex g++-multilib gcc-multilib gnupg gperf lib32ncurses5-dev lib32z1-dev libesd0-dev libncurses5-dev libsdl1.2-dev libwxgtk-media3.0-dev libxml2 libxml2-utils lzop pngcrush schedtool squashfs-tools xsltproc zip zlib1g-dev
+
+building:
+script:
+- git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 #ссылка на гит вашего тулчейна, в моем случае arm-cortex_a7
+- export PATH=$PATH:$PWD/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9/bin/ #путь до папки с тулчейном
+- aarch64-linux-android-gcc --version # название тулчейна
+- export ARCH=arm64 #архитектура вашего ядра
+- export CROSS_COMPILE=$PWD/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9/bin/aarch64-linux-android- #путь до папки с тулчейном и исполняемыми файлами
+- make tubass_defconfig #название вашего defconfig в папке arch/%архитектура%/configs
+- make 1>builds.log 2>errors.log 
+after_script:
+- curl --upload-file builds.log https://transfer.sh/builds.log |grep transfer
+- curl --upload-file errors.log https://transfer.sh/errors.log |grep transfer
+- curl --upload-file arch/arm64/boot/Image.gz-dtb https://transfer.sh/Image.gz-dtb |grep transfer
